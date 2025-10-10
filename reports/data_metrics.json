@@ -1,0 +1,57 @@
+{
+  "dataset": {
+    "total_samples": 10000,
+    "total_features": 10,
+    "missing_values_total": "0",
+    "missing_values_percentage": 0.0
+  },
+  "splits": {
+    "train_samples": 7000,
+    "validation_samples": 1000,
+    "test_samples": 2000,
+    "train_percentage": 70.0,
+    "validation_percentage": 10.0,
+    "test_percentage": 20.0
+  },
+  "class_distribution": {
+    "train": {
+      "class_0": 2040,
+      "class_1": 4960,
+      "class_0_percentage": 29.142857142857142,
+      "class_1_percentage": 70.85714285714285
+    },
+    "validation": {
+      "class_0": 291,
+      "class_1": 709,
+      "class_0_percentage": 29.099999999999998,
+      "class_1_percentage": 70.89999999999999
+    },
+    "test": {
+      "class_0": 583,
+      "class_1": 1417,
+      "class_0_percentage": 29.15,
+      "class_1_percentage": 70.85000000000001
+    }
+  },
+  "feature_statistics": {
+    "numerical_features": [
+      "Age",
+      "BMI",
+      "Systolic_BP",
+      "Diastolic_BP",
+      "Heart_Rate"
+    ],
+    "categorical_features": [
+      "Gender",
+      "Medical_History",
+      "Smoking",
+      "Sporting"
+    ],
+    "target_variable": "Hypertension_Tests"
+  },
+  "data_quality": {
+    "is_balanced": "False",
+    "has_missing_values": "False",
+    "split_ratios_correct": true
+  }
+}

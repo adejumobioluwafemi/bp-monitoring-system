@@ -1,0 +1,18 @@
+{
+  "data_metrics": {
+    "train_samples": {"type": "number", "min": 100},
+    "val_samples": {"type": "number", "min": 50}, 
+    "test_samples": {"type": "number", "min": 50},
+    "class_balance": {"type": "number", "min": 0.3, "max": 0.7}
+  },
+  "training_metrics": {
+    "train_accuracy": {"type": "number", "min": 0.7},
+    "val_accuracy": {"type": "number", "min": 0.7},
+    "train_loss": {"type": "number", "max": 0.5}
+  },
+  "evaluation_metrics": {
+    "test_accuracy": {"type": "number", "min": 0.75},
+    "test_f1": {"type": "number", "min": 0.7},
+    "test_roc_auc": {"type": "number", "min": 0.8}
+  }
+}

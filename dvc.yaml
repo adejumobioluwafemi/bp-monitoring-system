@@ -1,0 +1,20 @@
+stages:
+  prepare_data:
+    cmd: python src/applications/training.py --prepare-data-only
+    deps:
+      - src/applications/training.py
+      - src/ml/data_processor.py
+      - src/data_layer/data_connector.py
+      - data/raw/Hypertension_Data_Set.csv
+    params:
+      - prepare.test_size
+      - prepare.val_size
+      - prepare.random_state
+    outs:
+      - data/processed/train.csv
+      - data/processed/val.csv
+      - data/processed/test.csv
+    metrics:
+      - reports/data_metrics.json:
+          cache: false
+

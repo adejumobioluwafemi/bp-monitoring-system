@@ -1,0 +1,43 @@
+schema: '2.0'
+stages:
+  prepare_data:
+    cmd: python src/applications/training.py --prepare-data-only
+    deps:
+    - path: data/raw/Hypertension_Data_Set.csv
+      hash: md5
+      md5: 111a3f8d8e91e2e3c7655ed30a805d12
+      size: 353313
+    - path: src/applications/training.py
+      hash: md5
+      md5: 1ca5c51fa9481af33c8c93f21d004509
+      size: 5134
+    - path: src/data_layer/data_connector.py
+      hash: md5
+      md5: 027e5d07da858f82959f6d24fbe2ffb9
+      size: 329
+    - path: src/ml/data_processor.py
+      hash: md5
+      md5: e4e2f71ead281747eebdfc37cf8de427
+      size: 8418
+    params:
+      params.yaml:
+        prepare.random_state: 42
+        prepare.test_size: 0.2
+        prepare.val_size: 0.1
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 7ac9696fbc8ec71b96dc72d181e116af
+      size: 68788
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 9bbcee0ab90bc66951096014604c9e86
+      size: 240354
+    - path: data/processed/val.csv
+      hash: md5
+      md5: 39cca104999f3b215c18b601cd300f6c
+      size: 34408
+    - path: reports/data_metrics.json
+      hash: md5
+      md5: 52e4000f886d7f54580b430bc0fbb1c6
+      size: 1278
