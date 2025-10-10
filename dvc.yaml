@@ -18,3 +18,16 @@ stages:
       - reports/data_metrics.json:
           cache: false
 
+  validate_data:
+    cmd: python src/applications/validate_data.py
+    deps:
+      - src/applications/validate_data.py
+      - data/processed/train.csv
+      - data/processed/val.csv
+      - data/processed/test.csv
+    outs:
+      - data/processed/train_clean.csv
+      - data/processed/val_clean.csv
+      - data/processed/test_clean.csv
+    metrics:
+      - reports/data_validation_report.json
