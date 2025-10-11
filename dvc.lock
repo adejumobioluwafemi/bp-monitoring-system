@@ -1,24 +1,24 @@
 schema: '2.0'
 stages:
   prepare_data:
-    cmd: python src/applications/training.py --prepare-data-only
+    cmd: python src/applications/prepare_data.py
     deps:
     - path: data/raw/Hypertension_Data_Set.csv
       hash: md5
       md5: 111a3f8d8e91e2e3c7655ed30a805d12
       size: 353313
-    - path: src/applications/training.py
+    - path: src/applications/prepare_data.py
       hash: md5
-      md5: 0766a12b40c5b029e3193528c32b91c9
-      size: 5273
+      md5: 9de0ef0f4cb6ff1fb7bb144925671939
+      size: 4325
     - path: src/data_layer/data_connector.py
       hash: md5
-      md5: 027e5d07da858f82959f6d24fbe2ffb9
-      size: 329
+      md5: 11ec435b564645f464cd19bb5ce65be1
+      size: 1284
     - path: src/ml/data_processor.py
       hash: md5
-      md5: e4e2f71ead281747eebdfc37cf8de427
-      size: 8418
+      md5: ae602b2f7ab0c760d272d470ca373f1d
+      size: 10612
     params:
       params.yaml:
         prepare.random_state: 42
@@ -58,8 +58,8 @@ stages:
       size: 34408
     - path: src/applications/validate_data.py
       hash: md5
-      md5: 475414b013ae3e4728ce2e5fdabd17ce
-      size: 5817
+      md5: 2a80d4272946def0750891df1d94a358
+      size: 5822
     outs:
     - path: data/processed/test_clean.csv
       hash: md5
@@ -75,5 +75,53 @@ stages:
       size: 34408
     - path: reports/data_validation_report.json
       hash: md5
-      md5: c9aaed0ecbf75dab3c06c6635bce32df
+      md5: ca7a825758bae659a503b5fb27ebf7e8
       size: 822
+  train_model:
+    cmd: python src/applications/training.py --train-only
+    deps:
+    - path: data/processed/train_clean.csv
+      hash: md5
+      md5: 9bbcee0ab90bc66951096014604c9e86
+      size: 240354
+    - path: data/processed/val_clean.csv
+      hash: md5
+      md5: 39cca104999f3b215c18b601cd300f6c
+      size: 34408
+    - path: src/applications/training.py
+      hash: md5
+      md5: 56e642489200a7301d1772a51a480637
+      size: 4885
+    - path: src/ml/cross_validator.py
+      hash: md5
+      md5: ec44ef7bad78b8ad852d11e03bc1e803
+      size: 15175
+    - path: src/ml/data_processor.py
+      hash: md5
+      md5: ae602b2f7ab0c760d272d470ca373f1d
+      size: 10612
+    - path: src/ml/model.py
+      hash: md5
+      md5: d9ba04f6af631259dfcf757612ab6c00
+      size: 8924
+    - path: src/ml/training_pipeline.py
+      hash: md5
+      md5: db6c073f0b086195071cbe7e1f4dec7b
+      size: 8363
+    params:
+      params.yaml:
+        model.logistic_regression.C: 1.0
+        model.logistic_regression.max_iter: 1000
+        model.model_type: random_forest
+        model.random_forest.max_depth: 10
+        model.random_forest.n_estimators: 100
+        model.random_state: 42
+    outs:
+    - path: models_chpt/hypertension_model.pkl
+      hash: md5
+      md5: 948ef5acbb2b00726d17a2758c584cb2
+      size: 1159579
+    - path: reports/training_metrics.json
+      hash: md5
+      md5: e0e303abf7996b0a2202229dca756ce6
+      size: 1390
