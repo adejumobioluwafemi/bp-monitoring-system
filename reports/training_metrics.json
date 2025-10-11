@@ -1,0 +1,69 @@
+{
+  "training_metadata": {
+    "training_time_seconds": 0.196841,
+    "training_samples": 7000,
+    "features_count": 10,
+    "model_type": "random_forest",
+    "random_state": 42,
+    "training_timestamp": "2025-10-11T15:54:05.529100"
+  },
+  "training_metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "roc_auc": 1.0,
+    "confusion_matrix": [
+      [
+        2040,
+        0
+      ],
+      [
+        0,
+        4960
+      ]
+    ],
+    "class_distribution": {
+      "class_0": 2040,
+      "class_1": 4960,
+      "class_0_percentage": 29.142857142857142,
+      "class_1_percentage": 70.85714285714285
+    }
+  },
+  "validation_metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "roc_auc": 1.0,
+    "confusion_matrix": [
+      [
+        291,
+        0
+      ],
+      [
+        0,
+        709
+      ]
+    ],
+    "class_distribution": {
+      "class_0": 291,
+      "class_1": 709,
+      "class_0_percentage": 29.099999999999998,
+      "class_1_percentage": 70.89999999999999
+    }
+  },
+  "performance_analysis": {
+    "accuracy_gap": 0.0,
+    "f1_gap": 0.0,
+    "is_overfitting": false,
+    "is_underfitting": false,
+    "generalization_quality": "good"
+  },
+  "model_summary": {
+    "model_type": "random_forest",
+    "best_metric": "accuracy",
+    "best_score": 1.0,
+    "training_status": "completed"
+  }
+}

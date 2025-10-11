@@ -4,10 +4,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, MinMaxScaler, RobustScaler
 from sklearn.feature_selection import SelectPercentile, chi2
 import os
-
+import yaml
 
 def get_data_preprocessor(numerical_cols, categorical_cols):
     numerical_transformer = Pipeline(steps=[
@@ -172,27 +172,66 @@ class DataProcessor:
 
         print(f"✅ Data metrics saved to {filepath}")
 
-    def create_preprocessor(self, numerical_cols, categorical_cols):
+    def create_preprocessor(self, numerical_cols, categorical_cols, 
+                           numerical_imputer=None, numerical_scaler=None,
+                           categorical_imputer=None, categorical_encoder=None,
+                           handle_unknown=None):
         """
-        Create preprocessing pipeline for numerical and categorical features
+        Create preprocessing pipeline using parameters from params.yaml
         """
+        # Load default parameters from params.yaml if not provided
+        try:
+            with open('params.yaml', 'r') as f:
+                params = yaml.safe_load(f)
+            preprocessing_params = params['preprocessing']
+            
+            numerical_imputer = numerical_imputer or preprocessing_params['numerical']['imputer']
+            numerical_scaler = numerical_scaler or preprocessing_params['numerical']['scaler']
+            categorical_imputer = categorical_imputer or preprocessing_params['categorical']['imputer']
+            categorical_encoder = categorical_encoder or preprocessing_params['categorical']['encoder']
+            handle_unknown = handle_unknown or preprocessing_params['categorical']['handle_unknown']
+            
+        except Exception as e:
+            print(f"⚠️  Could not load params.yaml: {e}. Using defaults.")
+            numerical_imputer = numerical_imputer or 'median'
+            numerical_scaler = numerical_scaler or 'standard'
+            categorical_imputer = categorical_imputer or 'most_frequent'
+            categorical_encoder = categorical_encoder or 'onehot'
+            handle_unknown = handle_unknown or 'ignore'
+        
+        # Create numerical transformer based on parameters
+        if numerical_scaler == 'standard':
+            scaler = StandardScaler()
+        elif numerical_scaler == 'minmax':
+            scaler = MinMaxScaler()
+        elif numerical_scaler == 'robust':
+            scaler = RobustScaler()
+        else:
+            print(f"⚠️  Unknown scaler: {numerical_scaler}. Using StandardScaler.")
+            scaler = StandardScaler()
+        
         numerical_transformer = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='median')),
-            ('scaler', StandardScaler())
+            ('imputer', SimpleImputer(strategy=numerical_imputer)),
+            ('scaler', scaler)
         ])
-
+        
+        # Create categorical transformer
         categorical_transformer = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='most_frequent')),
-            ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
+            ('imputer', SimpleImputer(strategy=categorical_imputer)),
+            ('encoder', OneHotEncoder(handle_unknown=handle_unknown, sparse_output=False))
         ])
-
+        
         self.preprocessor = ColumnTransformer(
             transformers=[
                 ('num', numerical_transformer, numerical_cols),
                 ('cat', categorical_transformer, categorical_cols)
             ]
         )
-
+        
+        print(f"✅ Created preprocessor with:")
+        print(f"   Numerical: {numerical_imputer} imputer, {numerical_scaler} scaler")
+        print(f"   Categorical: {categorical_imputer} imputer, {categorical_encoder} encoder")
+        
         return self.preprocessor
 
     def get_feature_names(self):

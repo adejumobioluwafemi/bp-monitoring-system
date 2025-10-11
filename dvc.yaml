@@ -1,8 +1,8 @@
 stages:
   prepare_data:
-    cmd: python src/applications/training.py --prepare-data-only
+    cmd: python src/applications/prepare_data.py 
     deps:
-      - src/applications/training.py
+      - src/applications/prepare_data.py
       - src/ml/data_processor.py
       - src/data_layer/data_connector.py
       - data/raw/Hypertension_Data_Set.csv
@@ -31,3 +31,26 @@ stages:
       - data/processed/test_clean.csv
     metrics:
       - reports/data_validation_report.json
+
+  train_model:
+    cmd: python src/applications/training.py --train-only
+    deps:
+      - src/applications/training.py
+      - src/ml/training_pipeline.py
+      - src/ml/data_processor.py
+      - src/ml/cross_validator.py
+      - src/ml/model.py
+      - data/processed/train_clean.csv
+      - data/processed/val_clean.csv
+    params:
+      - model.model_type
+      - model.random_state
+      - model.random_forest.n_estimators
+      - model.random_forest.max_depth
+      - model.logistic_regression.C
+      - model.logistic_regression.max_iter
+    outs:
+      - models_chpt/hypertension_model.pkl
+    metrics:
+      - reports/training_metrics.json:
+          cache: false

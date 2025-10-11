@@ -8,6 +8,7 @@ from pathlib import Path
 import argparse
 import os
 import sys
+import yaml
 
 sys.path.append(str(Path(__file__).parent.parent))
 try:
@@ -21,91 +22,66 @@ except ImportError as e:
     print(f"Python path: {sys.path}")
     sys.exit(1)
 
-def prepare_data_only():
-    """Only prepare and split data without training"""
-    print("📊 Preparing data only...")
 
-    # Load raw data
-    raw_data_path = "data/raw/Hypertension_Data_Set.csv"
-    data = DataConnector.get_data(raw_data_path)
-    print(f"   Loaded {len(data)} samples")
-
-    # Initialize data processor
-    data_processor = DataProcessor(
-        target_column='Hypertension_Tests',
-        test_size=0.2,
-        val_size=0.1,
-        random_state=42
-    )
-
-    processed_data_path = "data/processed"
-    X_train, X_val, X_test, y_train, y_val, y_test = data_processor.split_data(
-        data, save_path=processed_data_path, generate_metrics=True
-    )
-
-    print("✅ Data preparation completed")
-    return True
-
-
-def train_only():
-    """Train model using preprocessed data"""
-    print("🎯 Training model only...")
-
-    # Load preprocessed data
+def train_only(model_type=None):
+    """Train model with parameters from params.yaml"""
+    
+    # Load parameters from params.yaml
+    try:
+        with open('params.yaml', 'r') as f:
+            params = yaml.safe_load(f)
+        
+        model_type = model_type or params['model']['model_type']
+        print(f"🎯 Training {model_type} model using parameters from params.yaml...")
+        
+    except Exception as e:
+        print(f"⚠️  Could not load params.yaml: {e}. Using defaults.")
+        model_type = model_type or 'random_forest'
+        params = {}
+    
     train_data = DataConnector.load_data("data/processed/train_clean.csv")
     val_data = DataConnector.load_data("data/processed/val_clean.csv")
 
-    # Prepare features and target
     X_train = train_data.drop(columns=['Hypertension_Tests'])
     y_train = train_data['Hypertension_Tests']
     X_val = val_data.drop(columns=['Hypertension_Tests'])
     y_val = val_data['Hypertension_Tests']
 
-    # Define feature columns
-    numerical_cols = ['Age', 'BMI', 'Systolic_BP',
-                      'Diastolic_BP', 'Heart_Rate']
-    categorical_cols = ['Gender', 'Medical_History', 'Smoking', 'Sporting']
+    numerical_cols = params.get('prepare', {}).get('numerical_features', 
+                   ['Age', 'BMI', 'Systolic_BP', 'Diastolic_BP', 'Heart_Rate'])
+    categorical_cols = params.get('prepare', {}).get('categorical_features',
+                    ['Gender', 'Medical_History', 'Smoking', 'Sporting'])
 
-    # Create and fit preprocessor
     data_processor = DataProcessor()
-    preprocessor = data_processor.create_preprocessor(
-        numerical_cols, categorical_cols)
+    preprocessor = data_processor.create_preprocessor(numerical_cols, categorical_cols)
 
-    # Initialize and run training pipeline
     training_pipeline = TrainingPipeline(
         preprocessor=preprocessor,
-        model_type='random_forest',
-        random_state=42
+        model_type=model_type,
+        random_state=params.get('model', {}).get('random_state', 42)
     )
 
-    # Train on training data
     training_pipeline.fit(X_train, y_train)
 
-    # Validate on validation set
-    val_accuracy = training_pipeline.evaluate(X_val, y_val)
-    print(f"✅ Validation Accuracy: {val_accuracy:.4f}")
-
-    # Save the trained model
     models_path = "models_chpt"
     os.makedirs(models_path, exist_ok=True)
-    training_pipeline.save_model(os.path.join(
-        models_path, "hypertension_model.pkl"))
+    model_spec_filename = f"hypertension_model_{model_type}.pkl"
+    default_model_filename = "hypertension_model.pkl"
+    training_pipeline.save_model(os.path.join(models_path, model_spec_filename))
+    training_pipeline.save_model(os.path.join(models_path, default_model_filename))
 
-    print("✅ Model training completed")
+    print("📈 Generating evaluation report...")
+    comprehensive_report = training_pipeline.get_comprehensive_report(X_train, y_train, X_val, y_val)
+    training_pipeline.save_training_report(comprehensive_report)
+
+
+    print(f"✅ {model_type} model training completed")
     return True
 
-
-def full_training():
+def full_training_cv_with_test():
     """Run complete training workflow (data prep + training)"""
     print(" Starting complete Hypertension Model Training...")
 
-    # Prepare data
-    prepare_data_only()
-
-    # Data validation
-    validate_data()
-
-    # Train model
     train_only()
 
     # 4. Optional: Cross-validation and evaluation
@@ -131,8 +107,6 @@ def full_training():
 def main():
     """Main function with argument parsing"""
     parser = argparse.ArgumentParser(description='Hypertension Model Training')
-    parser.add_argument('--prepare-data-only', action='store_true',
-                        help='Only prepare and split data without training')
     parser.add_argument('--train-only', action='store_true',
                         help='Train model using preprocessed data')
     parser.add_argument('--full', action='store_true',
@@ -141,16 +115,14 @@ def main():
     args = parser.parse_args()
 
     # Default behavior if no arguments provided
-    if not any([args.prepare_data_only, args.train_only, args.full]):
+    if not any([args.train_only, args.full]):
         args.full = True
 
     try:
-        if args.prepare_data_only:
-            success = prepare_data_only()
-        elif args.train_only:
+        if args.train_only:
             success = train_only()
         else:  # args.full or default
-            success = full_training()
+            success = full_training_cv_with_test()
 
         if success:
             print("✅ Training script completed successfully")
