@@ -14,3 +14,13 @@ use conda env
 conda create -n bp-monitoring-env
 
 conda activate bp-monitoring-env
+
+## 
+
+## FastAPI
+
+`python src/api/app.py`
+
+## Streamlit
+
+`streamlit run app.py`
