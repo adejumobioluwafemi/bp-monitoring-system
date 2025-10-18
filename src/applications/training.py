@@ -9,6 +9,9 @@ import argparse
 import os
 import sys
 import yaml
+import mlflow
+import mlflow.sklearn
+from mlflow.models import infer_signature
 
 sys.path.append(str(Path(__file__).parent.parent))
 try:
@@ -23,7 +26,7 @@ except ImportError as e:
     sys.exit(1)
 
 
-def train_only(model_type=None):
+def train_only_without_mlflow(model_type=None):
     """Train model with parameters from params.yaml"""
     
     # Load parameters from params.yaml
@@ -42,10 +45,11 @@ def train_only(model_type=None):
     train_data = DataConnector.load_data("data/processed/train_clean.csv")
     val_data = DataConnector.load_data("data/processed/val_clean.csv")
 
-    X_train = train_data.drop(columns=['Hypertension_Tests'])
-    y_train = train_data['Hypertension_Tests']
-    X_val = val_data.drop(columns=['Hypertension_Tests'])
-    y_val = val_data['Hypertension_Tests']
+    target_col = params.get('prepare', {}).get('target_column', 'Hypertension_Tests')
+    X_train = train_data.drop(columns=[target_col])
+    y_train = train_data[target_col]
+    X_val = val_data.drop(columns=[target_col])
+    y_val = val_data[target_col]
 
     numerical_cols = params.get('prepare', {}).get('numerical_features', 
                    ['Age', 'BMI', 'Systolic_BP', 'Diastolic_BP', 'Heart_Rate'])
@@ -77,6 +81,105 @@ def train_only(model_type=None):
 
     print(f"✅ {model_type} model training completed")
     return True
+
+def training_only(model_type=None):
+    """
+    Production-ready mlflow integration with consistent model naming
+    """
+    mlflow.set_tracking_uri("http://127.0.0.1:8080")
+    mlflow.set_experiment("hypertension-risk-prediction")
+
+    # Disable autologging to prevent conflicts
+    mlflow.sklearn.autolog(disable=True)
+    with open('params.yaml', 'r') as f:
+        params = yaml.safe_load(f)
+    
+    model_type = model_type or params['model']['model_type']
+    
+    MODEL_NAME = "hypertension-classifier" 
+
+    with mlflow.start_run(run_name=f"prod-{model_type}") as run:
+        print(f"Starting MLflow-tracked training for {model_type}")
+
+        mlflow.log_params(params['model'][model_type])
+        mlflow.log_params({
+            "test_size": params['prepare']['test_size'],
+            "val_size": params['prepare']['val_size']
+        })
+
+        train_data = DataConnector.load_data("data/processed/train_clean.csv")
+        val_data = DataConnector.load_data("data/processed/val_clean.csv")
+
+        target_col = params.get('prepare', {}).get('target_column', 'Hypertension_Tests')
+        X_train = train_data.drop(columns=[target_col])
+        y_train = train_data[target_col]
+        X_val = val_data.drop(columns=[target_col])
+        y_val = val_data[target_col]
+
+        numerical_cols = params.get('prepare', {}).get('numerical_features', 
+                    ['Age', 'BMI', 'Systolic_BP', 'Diastolic_BP', 'Heart_Rate'])
+        categorical_cols = params.get('prepare', {}).get('categorical_features',
+                        ['Gender', 'Medical_History', 'Smoking', 'Sporting'])
+
+        data_processor = DataProcessor()
+        preprocessor = data_processor.create_preprocessor(numerical_cols, categorical_cols)
+
+        training_pipeline = TrainingPipeline(
+            preprocessor=preprocessor,
+            model_type=model_type,
+            random_state=params.get('model', {}).get('random_state', 42)
+        )
+
+        training_pipeline.fit(X_train, y_train)
+
+        signature = infer_signature(X_train, training_pipeline.predict(X_train))
+
+        mlflow.sklearn.log_model(
+            sk_model=training_pipeline.pipeline,
+            artifact_path="model",
+            registered_model_name=MODEL_NAME,
+            signature=signature
+        )
+        print(f"💾 Logged model as '{MODEL_NAME}' with signature")
+
+        comprehensive_report = training_pipeline.get_comprehensive_report(X_train=X_train, y_train=y_train, X_val=X_val, y_val=y_val)
+        training_pipeline.save_training_report(comprehensive_report)
+
+        import time
+        current_time = int(time.time() * 1000)  # Current timestamp in milliseconds
+        
+        
+        mlflow.log_metrics({
+            "train_acc": comprehensive_report['training_metrics']['accuracy'],
+            "val_acc": comprehensive_report['validation_metrics']['accuracy'],
+            "train_f1": comprehensive_report['training_metrics']['f1'],
+            "val_f1": comprehensive_report['validation_metrics']['f1'],
+            "roc_auc": comprehensive_report['validation_metrics']['roc_auc']
+        }, step=0)  # step=0 for all metrics to ensure they're batched together
+
+        mlflow.log_metric("training_time", training_pipeline.training_history['training_time_seconds'])
+        mlflow.log_param("feature_count", training_pipeline.training_history['features_count'])
+        mlflow.log_param("model_type", training_pipeline.training_history['model_type'])
+        mlflow.sklearn.log_model(training_pipeline.pipeline, "model")
+        print("📊 Logged comprehensive metrics")
+        
+        mlflow.log_artifact("reports/training_metrics.json")
+        mlflow.log_artifact("params.yaml")
+        print("📎 Logged artifact files")
+
+        mlflow.set_tags({
+            "project": "bp-monitoring-system",
+            "team": "data-science",
+            "iteration": "v1",
+            "data_source": "clinical",
+            "model_family": model_type,
+            "registered_model_name": MODEL_NAME
+        })
+        print("🏷️ Set organizational tags")
+
+        print(f"✅ MLflow tracking complete! View at: http://127.0.0.1:8080/#/experiments/0/runs/{run.info.run_id}")
+        
+        return run.info.run_id, MODEL_NAME
 
 def full_training_cv_with_test():
     """Run complete training workflow (data prep + training)"""
@@ -120,7 +223,7 @@ def main():
 
     try:
         if args.train_only:
-            success = train_only()
+            success = training_only()
         else:  # args.full or default
             success = full_training_cv_with_test()
 

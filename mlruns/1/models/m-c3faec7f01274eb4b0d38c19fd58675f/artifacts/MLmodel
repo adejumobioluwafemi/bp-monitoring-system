@@ -1,0 +1,22 @@
+artifact_path: /Users/a1/Downloads/projects/100DaysOfAI/bp-monitoring-system/mlruns/1/models/m-c3faec7f01274eb4b0d38c19fd58675f/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.13.5
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.7.2
+mlflow_version: 3.4.0
+model_id: m-c3faec7f01274eb4b0d38c19fd58675f
+model_size_bytes: 1154619
+model_uuid: m-c3faec7f01274eb4b0d38c19fd58675f
+prompts: null
+run_id: be6f026e564143b1bc7cc1665e8517f3
+utc_time_created: '2025-10-14 17:37:53.445432'

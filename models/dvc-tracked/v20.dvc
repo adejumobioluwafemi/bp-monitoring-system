@@ -1,0 +1,6 @@
+outs:
+- md5: 9f6b750f98aa524617a7a0eb176cb36a.dir
+  size: 1156856
+  nfiles: 6
+  hash: md5
+  path: v20

@@ -5,10 +5,13 @@ import numpy as np
 import json
 import os
 import yaml
+import logging
 from datetime import datetime 
+import mlflow
 from .data_processor import get_data_preprocessor
 from .model import Model
 
+logger = logging.getLogger(__name__)
 class TrainingPipeline:
     def __init__(self, preprocessor, model_type=None, random_state=None, **model_params):
         try:
@@ -24,7 +27,19 @@ class TrainingPipeline:
             self.model_type = model_type or 'random_forest'
             self.random_state = random_state or 42
             self.model_params = model_params or {}
-        
+
+        #try:
+        #    #mlflow.sklearn.autolog()
+        #    self.mlflow_autolog_enabled = True  # Specific to autologging
+        #    logger.info("MLflow autologging enabled successfully")
+        #except Exception as e:
+        #    self.mlflow_autolog_enabled = False
+        #    logger.warning(f"MLflow autologging failed: {str(e)}. Manual logging still available.")
+        try:
+            mlflow.sklearn.autolog(disable=True)  # Disable here too
+        except:
+            pass
+
         self.preprocessor = preprocessor
         self.model = Model(
             model_type=self.model_type, 
@@ -70,6 +85,17 @@ class TrainingPipeline:
             'random_state': self.random_state,
             'training_timestamp': datetime.now().isoformat()
         }
+
+        #try:
+        #    mlflow.log_metric("training_time", training_time)
+        #    mlflow.log_param("feature_count", X.shape[1])
+        #    mlflow.log_param("model_type", self.model_type)
+        #    
+        #    if hasattr(self, 'pipeline') and self.pipeline is not None:
+        #        mlflow.sklearn.log_model(self.pipeline, "model")
+                
+        #except Exception as e:
+        #    logger.warning(f"Manual MLflow logging failed: {str(e)}")
 
         print(f"✅ Training completed in {training_time:.2f} seconds")
 
@@ -173,7 +199,10 @@ class TrainingPipeline:
                 'training_status': 'completed'
             }
         }
-        
+        # Log model performance characteristics
+        mlflow.set_tag("generalization_quality", comprehensive_report['performance_analysis']['generalization_quality'])
+        mlflow.set_tag("is_overfitting", str(comprehensive_report['performance_analysis']['is_overfitting']))
+
         return comprehensive_report
     
     def save_training_report(self, report, filepath="reports/training_metrics.json"):

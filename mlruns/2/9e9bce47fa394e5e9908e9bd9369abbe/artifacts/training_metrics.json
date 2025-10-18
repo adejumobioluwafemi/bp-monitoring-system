@@ -1,11 +1,11 @@
 {
   "training_metadata": {
-    "training_time_seconds": 0.230735,
+    "training_time_seconds": 0.257078,
     "training_samples": 7000,
     "features_count": 10,
     "model_type": "random_forest",
     "random_state": 42,
-    "training_timestamp": "2025-10-18T15:23:05.673285"
+    "training_timestamp": "2025-10-18T15:20:19.529790"
   },
   "training_metrics": {
     "accuracy": 1.0,

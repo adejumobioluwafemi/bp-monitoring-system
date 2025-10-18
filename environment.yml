@@ -40,6 +40,7 @@ dependencies:
   - libdeflate=1.22=h46256e1_0
   - libffi=3.4.4=hecd8cb5_1
   - libgfortran=5.0.0=11_3_0_hecd8cb5_28
+  - libgfortran-ng=3.0.1=h93005f0_2
   - libgfortran5=11.3.0=h9dfd629_28
   - libglib=2.84.2=heb90364_0
   - libiconv=1.16=h6c40b1e_3
@@ -59,6 +60,7 @@ dependencies:
   - nest-asyncio=1.6.0=py313hecd8cb5_0
   - numexpr=2.11.0=py313hc046980_0
   - numpy-base=2.3.1=py313hce0bb57_0
+  - openblas=0.3.1=hd130d23_0
   - openjpeg=2.5.2=h2d09ccc_1
   - openssl=3.5.4=h230baf5_0
   - packaging=25.0=py313hecd8cb5_0
@@ -113,6 +115,7 @@ dependencies:
       - attrs==25.4.0
       - authlib==1.6.5
       - awscli==1.42.50
+      - backoff==2.2.1
       - billiard==4.2.2
       - blinker==1.9.0
       - boto3==1.40.49
@@ -133,7 +136,11 @@ dependencies:
       - cryptography==43.0.3
       - cycler==0.12.1
       - cyclopts==3.24.0
+      - dacite==1.6.0
+      - dagshub==0.6.3
+      - dagshub-annotation-converter==0.1.13
       - databricks-sdk==0.67.0
+      - dataclasses-json==0.6.7
       - dictdiffer==0.9.0
       - diskcache==5.6.3
       - distro==1.9.0
@@ -173,6 +180,7 @@ dependencies:
       - google-auth-httplib2==0.2.0
       - google-auth-oauthlib==1.2.2
       - googleapis-common-protos==1.70.0
+      - gql==4.0.0
       - grandalf==0.8
       - graphene==3.4.3
       - graphql-core==3.2.6
@@ -199,9 +207,11 @@ dependencies:
       - kiwisolver==1.4.9
       - kombu==5.5.4
       - lazy-object-proxy==1.12.0
+      - lxml==6.0.2
       - mako==1.3.10
       - markdown-it-py==4.0.0
       - markupsafe==3.0.3
+      - marshmallow==3.26.1
       - matplotlib==3.10.7
       - mcp==1.17.0
       - mdurl==0.1.2
@@ -210,6 +220,7 @@ dependencies:
       - mlflow-tracing==3.4.0
       - more-itertools==10.8.0
       - multidict==6.7.0
+      - mypy-extensions==1.1.0
       - networkx==3.5
       - numpy==2.3.3
       - oauth2client==4.1.3
@@ -228,6 +239,7 @@ dependencies:
       - parse==1.20.2
       - pathable==0.4.4
       - pathspec==0.12.1
+      - pathvalidate==3.3.1
       - platformdirs==4.5.0
       - prompt-toolkit==3.0.52
       - propcache==0.4.1
@@ -255,6 +267,7 @@ dependencies:
       - referencing==0.36.2
       - requests==2.32.5
       - requests-oauthlib==2.0.0
+      - requests-toolbelt==1.0.0
       - rfc3339-validator==0.1.4
       - rich==14.1.0
       - rich-rst==1.3.1
@@ -278,10 +291,13 @@ dependencies:
       - sse-starlette==3.0.2
       - starlette==0.48.0
       - tabulate==0.9.0
+      - tenacity==9.1.2
       - tomlkit==0.13.3
       - tqdm==4.67.1
+      - treelib==1.8.0
       - typer==0.19.2
       - typing-extensions==4.15.0
+      - typing-inspect==0.9.0
       - typing-inspection==0.4.2
       - uritemplate==4.2.0
       - urllib3==2.5.0
@@ -294,3 +310,4 @@ dependencies:
       - yarl==1.22.0
       - zc-lockfile==4.0
       - zipp==3.23.0
+
