@@ -26,7 +26,7 @@ This system provides:
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/adejumobioluwafemi/bp-monitoring-system.git
    cd bp-monitoring-system
    ```
 
