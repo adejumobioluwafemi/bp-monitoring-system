@@ -1,6 +1,3 @@
-Here's the updated README.md with DVC workflow and conda environment information:
-
-```markdown
 # Hypertension Risk Prediction System
 
 A comprehensive machine learning system for predicting hypertension risk based on clinical parameters and lifestyle factors. This system includes data processing, model training, MLflow tracking, model registry, FastAPI serving, and Streamlit web interface.
@@ -377,4 +374,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Use the `/debug-features` API endpoint for preprocessing issues
 - Review training logs in `mlruns/` directory
 - Check DVC pipeline status with `dvc status` and `dvc dag`
-```
+
