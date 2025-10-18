@@ -40,7 +40,7 @@ This system provides:
    conda activate bp-monitoring-env
    ```
 
-3. **Set up DVC**
+3. **Set up DVC, [My note to Setup DVC Remote](https://docs.google.com/document/d/13OdkTFmlJOf35u6fjISQU2DwgH7IHpSwar9N4SoRJag/edit?usp=sharing)**
    ```bash
    # Initialize DVC (if not already done)
    dvc init
@@ -121,11 +121,9 @@ python src/applications/validate_data.py
 # Train model with MLflow tracking
 python src/applications/training.py --train-only
 
-# Or run complete training workflow
-python src/applications/training.py --full
 ```
 
-#### 3. Start MLflow Server (Optional)
+#### 3. Start MLflow Server (Optional), [My Note on MLFlow](https://docs.google.com/document/d/1GVk13aiVWKfKty9ykJfkc86kE4OQkVglbpQcF6xkU2c/edit?usp=sharing)
 
 ```bash
 mlflow server --host 127.0.0.1 --port 8080 --backend-store-uri sqlite:///mlflow.db
@@ -135,7 +133,7 @@ View experiments at: http://localhost:8080
 
 #### 4. Model Serving
 
-**Start FastAPI Service:**
+**Start FastAPI Service: [My note on FastAPI](https://docs.google.com/document/d/1ZkaxWxFpjgfr_L9k2PDkpfEEnpQQ8MlROIKeYkuIakw/edit?usp=sharing)**
 ```bash
 python src/api/app.py
 ```
