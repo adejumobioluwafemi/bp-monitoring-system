@@ -29,6 +29,7 @@ class ModelLoader:
         """Load the model from the specified path"""
         # Try multiple possible model locations
         possible_model_paths = [
+            "models/production/model/model.pkl",
             "models/production/current/model/model.pkl",
             "models_chpt/hypertension_model_random_forest.pkl",
             "mlruns/2/models/m-*/artifacts/model.pkl"
