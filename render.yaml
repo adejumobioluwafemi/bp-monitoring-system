@@ -3,8 +3,8 @@ services:
     name: hypertension-api
     env: python
     plan: free
-    buildCommand: pip install -r deployment/requirements-api.txt
+    buildCommand: pip install --no-cache-dir -r requirements-api.txt
     startCommand: uvicorn src.api.app:app --host 0.0.0.0 --port 8000
     envVars:
       - key: PYTHON_VERSION
-        value: 3.9.0
+        value: 3.13.0
