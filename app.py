@@ -5,6 +5,12 @@ import pandas as pd
 import plotly.graph_objects as go
 import time
 import json
+import os
+from typing import Optional
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 st.set_page_config(
     page_title="Hypertension Risk Assessment",
@@ -62,9 +68,33 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+class AppConfig:
+    def __init__(self):
+        self.api_url = self._get_api_url()
+        
+    def _get_api_url(self) -> str:
+        """Get API URL from environment variable with fallback"""
+        api_url = os.getenv("API_URL")
+
+        if not api_url and hasattr(st, 'secrets') and 'API_URL' in st.secrets:
+            self.api_url = st.secrets['API_URL']
+        
+        if not api_url:
+            # Development mode - use localhost
+            return "http://localhost:8000"
+        
+        # Ensure URL has proper protocol
+        if not api_url.startswith(('http://', 'https://')):
+            api_url = f"https://{api_url}"
+            
+        return api_url.rstrip('/') 
+    
 class HypertensionApp:
-    def __init__(self, api_url="http://localhost:8000"):
-        self.api_url = api_url
+    def __init__(self, api_url: Optional[str] = None):
+        self.config = AppConfig()
+        # Allow override via parameter, otherwise use config
+        self.api_url = api_url or self.config.api_url
+        st.sidebar.info(f"🌐 API: {self.api_url}")
     
     def check_api_health(self):
         """Check if the API is running"""

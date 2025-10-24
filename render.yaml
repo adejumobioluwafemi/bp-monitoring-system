@@ -1,7 +1,7 @@
 services:
   - type: web
     name: hypertension-api
-    env: python
+    env: docker
     plan: free
     buildCommand: pip install --no-cache-dir -r requirements-api.txt
     startCommand: uvicorn src.api.app:app --host 0.0.0.0 --port 8000

@@ -75,7 +75,7 @@ class ModelLoader:
         
         # Try to get feature names from the model
         if hasattr(self.model, 'feature_names_in_'):
-            self.expected_features = list(self.model.feature_names_in_)
+            self.expected_features = list(self.model.feature_names_in_).remove("Unnamed: 0")
             logger.info(f"🎯 Model expects features: {self.expected_features}")
         
         # For pipelines, check the final estimator
