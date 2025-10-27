@@ -9,7 +9,6 @@ import os
 from typing import Optional
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 st.set_page_config(
@@ -18,7 +17,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
 
 st.markdown("""
 <style>
@@ -64,6 +62,13 @@ st.markdown("""
         width: 100%;
         border-radius: 0.5rem;
         font-weight: bold;
+    }
+    .bmi-calculator {
+        background-color: #f0f8ff;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        border: 2px dashed #1f77b4;
+        margin: 1rem 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -135,6 +140,102 @@ class HypertensionApp:
         except requests.exceptions.RequestException as e:
             return False, {"error": str(e)}
 
+def calculate_bmi(weight_kg, height_m):
+    """
+    Calculate BMI from weight in kg and height in meters
+    
+    Args:
+        weight_kg (float): Weight in kilograms
+        height_m (float): Height in meters
+    
+    Returns:
+        float: BMI value rounded to 1 decimal place
+    """
+    if height_m <= 0 or weight_kg <= 0:
+        raise ValueError("Height and weight must be positive values")
+    
+    bmi = weight_kg / (height_m ** 2)
+    return round(bmi, 1)
+
+def get_bmi_category(bmi):
+    """Get BMI category based on BMI value"""
+    if bmi < 18.5:
+        return "Underweight", "#ffa500"  # Orange
+    elif 18.5 <= bmi < 25:
+        return "Normal weight", "#2ecc71"  # Green
+    elif 25 <= bmi < 30:
+        return "Overweight", "#f39c12"  # Orange
+    else:
+        return "Obese", "#e74c3c"  # Red
+
+def create_bmi_calculator():
+    """Create BMI calculator component"""
+    st.markdown('<div class="bmi-calculator">', unsafe_allow_html=True)
+    st.subheader("🧮 BMI Calculator")
+    st.write("Don't know your BMI? Calculate it using your height and weight:")
+    
+    col1, col2, col3 = st.columns([2, 2, 1])
+    
+    with col1:
+        height_unit = st.radio("Height unit:", ["meters", "centimeters", "feet & inches"])
+        
+        if height_unit == "meters":
+            height = st.number_input("Height (m):", min_value=1.0, max_value=2.5, value=1.7, step=0.01)
+            height_m = height
+        elif height_unit == "centimeters":
+            height_cm = st.number_input("Height (cm):", min_value=100.0, max_value=250.0, value=170.0, step=1.0)
+            height_m = height_cm / 100
+        else:  # feet & inches
+            col_ft, col_in = st.columns(2)
+            with col_ft:
+                feet = st.number_input("Feet:", min_value=3, max_value=8, value=5, step=1)
+            with col_in:
+                inches = st.number_input("Inches:", min_value=0, max_value=11, value=7, step=1)
+            height_m = (feet * 12 + inches) * 0.0254
+    
+    with col2:
+        weight_unit = st.radio("Weight unit:", ["kilograms", "pounds"])
+        
+        if weight_unit == "kilograms":
+            weight = st.number_input("Weight (kg):", min_value=30.0, max_value=200.0, value=70.0, step=0.5)
+            weight_kg = weight
+        else:  # pounds
+            weight_lbs = st.number_input("Weight (lbs):", min_value=66.0, max_value=440.0, value=154.0, step=0.5)
+            weight_kg = weight_lbs * 0.453592
+    
+    with col3:
+        st.write("")  # Spacer
+        st.write("")  # Spacer
+        if st.button("Calculate BMI", use_container_width=True):
+            try:
+                bmi = calculate_bmi(weight_kg, height_m)
+                category, color = get_bmi_category(bmi)
+                
+                # Store in session state
+                st.session_state.calculated_bmi = bmi
+                st.session_state.bmi_category = category
+                st.session_state.bmi_color = color
+                
+            except ValueError as e:
+                st.error(str(e))
+    
+    # Display BMI result if calculated
+    if hasattr(st.session_state, 'calculated_bmi'):
+        bmi = st.session_state.calculated_bmi
+        category = st.session_state.bmi_category
+        color = st.session_state.bmi_color
+        
+        st.success(f"**Your BMI: {bmi}**")
+        st.markdown(f"<p style='color: {color}; font-weight: bold;'>Category: {category}</p>", unsafe_allow_html=True)
+        
+        # Add button to use this BMI
+        if st.button("Use This BMI Value", type="primary", use_container_width=True):
+            st.session_state.use_calculated_bmi = True
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    return height_m, weight_kg
+
 def create_patient_form():
     """Create the patient data input form"""
     st.header("📋 Patient Information")
@@ -152,14 +253,52 @@ def create_patient_form():
             help="Patient's age in years"
         )
         
-        bmi = st.slider(
-            "**BMI** (Body Mass Index)", 
-            min_value=15.0, 
-            max_value=50.0, 
-            value=25.0, 
-            step=0.1,
-            help="Body Mass Index - healthy range: 18.5-24.9"
+        # BMI section with calculator option
+        st.write("**BMI** (Body Mass Index)")
+        
+        # Radio to choose input method
+        bmi_input_method = st.radio(
+            "BMI input method:",
+            ["Enter BMI directly", "Calculate from height & weight"],
+            horizontal=True,
+            help="Choose how to provide BMI information"
         )
+        
+        if bmi_input_method == "Enter BMI directly":
+            bmi = st.slider(
+                "**BMI Value**", 
+                min_value=15.0, 
+                max_value=50.0, 
+                value=25.0, 
+                step=0.1,
+                help="Body Mass Index - healthy range: 18.5-24.9",
+                key="bmi_direct"
+            )
+        else:
+            # Show BMI calculator
+            height_m, weight_kg = create_bmi_calculator()
+            
+            # Use calculated BMI if available, otherwise show slider
+            if hasattr(st.session_state, 'use_calculated_bmi') and st.session_state.use_calculated_bmi:
+                bmi = st.session_state.calculated_bmi
+                st.info(f"Using calculated BMI: **{bmi}**")
+                # Add reset option
+                if st.button("Reset BMI Input"):
+                    if hasattr(st.session_state, 'use_calculated_bmi'):
+                        del st.session_state.use_calculated_bmi
+                    if hasattr(st.session_state, 'calculated_bmi'):
+                        del st.session_state.calculated_bmi
+                    st.rerun()
+            else:
+                bmi = st.slider(
+                    "**Or enter BMI manually**", 
+                    min_value=15.0, 
+                    max_value=50.0, 
+                    value=25.0, 
+                    step=0.1,
+                    help="Body Mass Index - healthy range: 18.5-24.9",
+                    key="bmi_calc"
+                )
         
         systolic_bp = st.slider(
             "**Systolic BP** (mmHg)", 
@@ -348,8 +487,11 @@ def generate_additional_recommendations(patient_data, prediction):
     recommendations = []
     
     # BMI-based recommendations
-    if patient_data["BMI"] > 25:
-        recommendations.append("Consider maintaining a healthy weight through balanced diet and exercise")
+    bmi = patient_data["BMI"]
+    if bmi > 25:
+        recommendations.append(f"Consider maintaining a healthy weight (current BMI: {bmi:.1f}). Aim for BMI between 18.5-24.9 through balanced diet and exercise")
+    elif bmi < 18.5:
+        recommendations.append(f"Your BMI ({bmi:.1f}) suggests underweight. Maintain a healthy weight through proper nutrition")
     
     # Blood pressure recommendations
     if patient_data["Systolic_BP"] > 130 or patient_data["Diastolic_BP"] > 85:
@@ -382,6 +524,8 @@ def display_input_summary(patient_data):
         st.write("**Clinical Measurements:**")
         st.write(f"• **Age:** {patient_data['Age']} years")
         st.write(f"• **BMI:** {patient_data['BMI']:.1f}")
+        category, color = get_bmi_category(patient_data['BMI'])
+        st.write(f"• **BMI Category:** {category}")
         st.write(f"• **Systolic BP:** {patient_data['Systolic_BP']} mmHg")
         st.write(f"• **Diastolic BP:** {patient_data['Diastolic_BP']} mmHg")
         st.write(f"• **Heart Rate:** {patient_data['Heart_Rate']} bpm")
@@ -540,6 +684,7 @@ def main():
         - Personalized recommendations  
         - Educational resources
         - Professional-grade preprocessing
+        - Built-in BMI calculator
         
         **Note:** This is a screening tool for educational purposes.
         Always consult healthcare professionals for medical advice.
@@ -548,6 +693,10 @@ def main():
         st.markdown("---")
         
         if st.button("🔄 Reset Application", use_container_width=True):
+            # Clear session state
+            for key in list(st.session_state.keys()):
+                if key.startswith('calculated_bmi') or key.startswith('use_calculated_bmi') or key.startswith('bmi_'):
+                    del st.session_state[key]
             st.rerun()
         
         st.markdown("---")
